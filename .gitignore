@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.yaml
+secrets.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts (if any local tooling is used)
+node_modules/
+__pycache__/
+*.pyc
+dist/
+build/

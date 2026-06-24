@@ -1,0 +1,53 @@
+name: Documentation Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  structure-check:
+    name: Repository Structure Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify README files in key directories
+        run: |
+          MISSING=0
+          for dir in \
+            architecture capabilities workflows product technology docs \
+            architecture/components architecture/data-flows architecture/decisions architecture/diagrams \
+            capabilities docs/getting-started docs/reference \
+            screenshots screenshots/dashboard screenshots/assessment screenshots/reports screenshots/pipeline-console \
+            assets assets/brand assets/diagrams
+          do
+            if [ ! -f "$dir/README.md" ]; then
+              echo "MISSING: $dir/README.md"
+              MISSING=1
+            fi
+          done
+          [ "$MISSING" -eq 0 ] || exit 1
+          echo "All README files present."
+
+      - name: Check for sensitive files
+        run: |
+          for pattern in ".env" "*.pem" "*.key" "credentials.json"; do
+            if find . -name "$pattern" -not -path "./.git/*" 2>/dev/null | grep -q .; then
+              echo "SENSITIVE: $pattern found"
+              exit 1
+            fi
+          done
+          echo "No sensitive files detected."
+
+      - name: Check for deprecated terminology
+        run: |
+          if rg -l "Agent X|Prompt Engine" --glob "*.md" --glob "!CHANGELOG.md" --glob "!docs/reference/glossary.md" . 2>/dev/null; then
+            echo "WARNING: Deprecated terminology found in documentation"
+            exit 1
+          fi
+          echo "Terminology check passed."
